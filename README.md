@@ -72,9 +72,17 @@ crash. Daemon SIGKILL, escaped groups, unavailable signal permissions, and
 uninterruptible kernel sleep remain outside bounded cleanup guarantees. A killed
 plugin can leave its private socket directory behind. This is not a sandbox.
 
-C2 retains a duplicate adapter and command in the daemon repository for builtin
-compatibility and self-contained tests. C3 must coordinate their removal and
-revisit daemon `-mpv` forwarding/default selection; C2 does not change these.
+C3 removes the daemon's duplicate implementation and moves `cmd/mpv-probe` here.
+Build/run the diagnostic with `go run ./cmd/mpv-probe AUDIO_FILE` (optional
+`-mpv executable` before the file). Its command/output behavior is preserved.
+For C3 hosts the backend override is explicit generic argument forwarding:
+
+```sh
+dfmpd -playback-plugin /absolute/path/dfmpd-playback-mpv \
+ -playback-plugin-arg=-mpv -playback-plugin-arg=/usr/bin/mpv
+```
+
+The earlier daemon `-mpv` example applies only to hosts through C2.
 
 ## Host compatibility tests
 
@@ -88,8 +96,8 @@ GOWORK=off DFMPD_TEST_PLAYBACK_PLUGIN=/absolute/path/dfmpd-playback-mpv \
 
 These verify two FLAC queue entries, next/previous, pause/resume, seek/stop,
 normal process/socket cleanup, SIGKILL/SIGSTOP recovery, and continued Core/Queue
-availability. They use null audio, not audible output. When the environment
-variable is absent the host builds its retained in-tree plugin instead.
+availability. They use null audio, not audible output. On C3 hosts these media cases skip when the variable is absent; normal host
+tests use fake SDK processes. C2 hosts retain their original in-tree default.
 
 Repository: https://github.com/dfmpd/dfmpd-playback-mpv.
 This repository is managed independently of the DFMPD daemon.
